@@ -42,15 +42,34 @@ app.controller("Session", ['$scope', '$mdDialog', function ($scope, $mdDialog) {
 			case "alert":
 				if (mdDialogVisible) { return; }
 				console.log(data);
+
+				// escape data.text <, > and &
+				data.text = data.text.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;');
+
+				// replace ^p with <br>
+				data.text = data.text.replace(/\^p/g, '</br>');
+
 				console.log(mdDialogVisible);
 				mdDialogVisible = true;
-				mdDialog.show(
-					mdDialog.alert().title(data.title).content(data.text).ok(data.okText)
-				).then(function() {
+
+				$mdDialog.show({
+				  template:
+				  	'<md-dialog>' +
+						'  <md-dialog-content style="color: white;">' +
+						'    <h2 class="md-title">' + data.title + '</h2>' +
+						'    <p>' + data.text + '</p>' +
+						'  </md-dialog-content>' +
+						'  <div class="md-actions">' +
+						'    <md-button ng-click="dialog.hide()" class="md-primary">' +
+						'      ' + data.okText +
+				    '    </md-button>' +
+				    '  </div>' +
+				    '</md-dialog>',
+				}).then(function() {
 					mdDialogVisible = false;
 					if (data.okJS !== undefined) { eval(data.okJS); return; }
 					else if (data.okLua !== undefined) { bngApi.engineLua(data.okLua); return; }
-				}, function() { mdDialogVisible = false; })
+				}, function() { mdDialogVisible = false; });
 				break;
 		}
 	});
